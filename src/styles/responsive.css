@@ -1,0 +1,113 @@
+/* Responsive Utilities & Enhancements for OO Toys */
+
+/* Mobile First Adjustments */
+@media (max-width: 576px) {
+  .tw-logo {
+    font-size: 1.4rem;
+  }
+
+  .tw-logo-icon {
+    width: 32px;
+    height: 32px;
+  }
+
+  .tw-navbar-logo {
+    height: 38px;
+    max-width: 130px;
+  }
+
+  .hero-title {
+    font-size: 2.2rem !important;
+  }
+
+  .section-title {
+    font-size: 1.6rem !important;
+  }
+
+  .announcement-bar {
+    font-size: 0.75rem;
+    padding: 0.35rem 0.5rem;
+  }
+}
+
+@media (max-width: 768px) {
+  .admin-sidebar {
+    position: fixed;
+    top: 0;
+    left: -280px;
+    height: 100vh;
+    z-index: 1050;
+    transition: left 0.3s ease;
+  }
+
+  .admin-sidebar.show {
+    left: 0;
+  }
+
+  .admin-backdrop {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    background: rgba(0, 0, 0, 0.4);
+    z-index: 1040;
+  }
+}
+
+/* Tablet & Mobile Nav Drawer */
+.mobile-nav-drawer {
+  position: fixed;
+  top: 0;
+  right: -320px;
+  width: 300px;
+  height: 100vh;
+  background: #ffffff;
+  box-shadow: -5px 0 25px rgba(0, 0, 0, 0.15);
+  z-index: 1100;
+  transition: right 0.3s ease;
+  overflow-y: auto;
+  padding: 1.5rem;
+}
+
+.mobile-nav-drawer.open {
+  right: 0;
+}
+
+.mobile-nav-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background: rgba(15, 23, 42, 0.45);
+  backdrop-filter: blur(4px);
+  z-index: 1090;
+}
+
+/* Product Card Grid Responsiveness */
+.product-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+  gap: 1.5rem;
+}
+
+@media (max-width: 576px) {
+  .product-grid {
+    grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+    gap: 0.85rem;
+  }
+}
+
+/* Category Grid */
+.category-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(135px, 1fr));
+  gap: 1rem;
+}
+
+@media (min-width: 992px) {
+  .category-grid {
+    grid-template-columns: repeat(8, 1fr);
+  }
+}

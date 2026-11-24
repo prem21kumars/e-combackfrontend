@@ -1,0 +1,16 @@
+services:
+  OO Toys-frontend:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: OO Toys_frontend
+    restart: always
+    ports:
+      - "80:80"
+    environment:
+      - NODE_ENV=production
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://localhost/"]
+      interval: 30s
+      timeout: 5s
+      retries: 3

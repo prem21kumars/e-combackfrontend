@@ -1,0 +1,390 @@
+[
+  {
+    "id": "TC-AUTH-001",
+    "module": "Authentication",
+    "title": "Admin Route Guard for Unauthenticated User",
+    "status": "PASSED",
+    "details": {
+      "redirectedTo": "http://localhost:5174/login"
+    },
+    "evidence": "Direct navigation to /admin properly redirects unauthenticated user to /login",
+    "timestamp": "2026-11-15T06:51:48.753Z"
+  },
+  {
+    "id": "TC-AUTH-002",
+    "module": "Authentication",
+    "title": "Login with Invalid Password",
+    "status": "PASSED",
+    "details": {
+      "apiStatus": 401,
+      "errorDisplayed": "Invalid email or password",
+      "retainedOnPage": "http://localhost:5174/login"
+    },
+    "evidence": "Backend returned 401 Unauthorized; frontend remained on /login and displayed alert",
+    "timestamp": "2026-11-15T06:51:56.682Z"
+  },
+  {
+    "id": "TC-AUTH-003",
+    "module": "Authentication",
+    "title": "Login Form Required Field Validation",
+    "status": "PASSED",
+    "details": {
+      "emailRequired": true
+    },
+    "evidence": "HTML5 client-side validation prevents empty form submission",
+    "timestamp": "2026-11-15T06:51:57.932Z"
+  },
+  {
+    "id": "TC-AUTH-004",
+    "module": "Authentication",
+    "title": "Valid Customer Authentication & JWT Storage",
+    "status": "PASSED",
+    "details": {
+      "status": 200,
+      "tokenPresent": true,
+      "destination": "http://localhost:5174/admin"
+    },
+    "evidence": "Customer authenticated with 200 OK; JWT token stored in localStorage",
+    "timestamp": "2026-11-15T06:52:01.490Z"
+  },
+  {
+    "id": "TC-AUTH-005",
+    "module": "Authentication",
+    "title": "Customer Role RBAC Access Denied on /admin",
+    "status": "PASSED",
+    "details": {
+      "blocked": true
+    },
+    "evidence": "Customer logged in with ROLE_CUSTOMER is denied access to /admin with Access Denied banner",
+    "timestamp": "2026-11-15T06:52:02.370Z"
+  },
+  {
+    "id": "TC-AUTH-006",
+    "module": "Authentication",
+    "title": "Valid Admin Login & Navigation to Console",
+    "status": "PASSED",
+    "details": {
+      "status": 200,
+      "currentUrl": "http://localhost:5174/admin"
+    },
+    "evidence": "Admin authenticated with 200 OK and redirected to /admin operations console",
+    "timestamp": "2026-11-15T06:52:05.828Z"
+  },
+  {
+    "id": "TC-AUTH-007",
+    "module": "Authentication",
+    "title": "Session Logout & Token Invalidation",
+    "status": "PASSED",
+    "details": {
+      "tokenCleared": true,
+      "redirectedTo": "http://localhost:5174/login"
+    },
+    "evidence": "Logout clears auth data from localStorage and returns to login",
+    "timestamp": "2026-11-15T06:52:06.952Z"
+  },
+  {
+    "id": "TC-REG-001",
+    "module": "Registration",
+    "title": "Duplicate Email Registration Conflict Handling",
+    "status": "PASSED",
+    "details": {
+      "status": 409,
+      "message": "Email is already registered: admin@ootoys.com"
+    },
+    "evidence": "Backend returned 409 Conflict; frontend displayed alert with conflict message",
+    "timestamp": "2026-11-15T06:52:11.482Z"
+  },
+  {
+    "id": "TC-REG-002",
+    "module": "Registration",
+    "title": "Password Confirmation Mismatch Validation",
+    "status": "PASSED",
+    "details": {
+      "message": "Passwords do not match."
+    },
+    "evidence": "Client-side validation detects password mismatch and blocks submission",
+    "timestamp": "2026-11-15T06:52:13.854Z"
+  },
+  {
+    "id": "TC-REG-003",
+    "module": "Registration",
+    "title": "Password Complexity Validation (OWASP)",
+    "status": "PASSED",
+    "details": {
+      "message": "Password must contain at least one uppercase letter, one lowercase letter, one number, and one special character (@#$%^&+=!._-)."
+    },
+    "evidence": "Client validation enforces uppercase, lowercase, digit, and special character",
+    "timestamp": "2026-11-15T06:52:16.395Z"
+  },
+  {
+    "id": "TC-REG-004",
+    "module": "Registration",
+    "title": "Successful Customer Registration & Direct Session Login",
+    "status": "PASSED",
+    "details": {
+      "status": 201,
+      "registeredEmail": "qa_parent_1794725536395@ootoys-qa.org",
+      "destination": "http://localhost:5174/account"
+    },
+    "evidence": "User registered with 201 Created; JWT token stored and redirected to /account",
+    "timestamp": "2026-11-15T06:52:21.044Z"
+  },
+  {
+    "id": "TC-PWD-001",
+    "module": "Password Recovery",
+    "title": "Forgot Password Workflow",
+    "status": "PASSED",
+    "details": {
+      "apiCalled": true,
+      "apiStatus": 200,
+      "endpoint": "POST /api/v1/auth/forgot-password"
+    },
+    "evidence": "Frontend invokes POST /api/v1/auth/forgot-password and displays password recovery link successfully",
+    "timestamp": "2026-11-15T06:52:25.496Z"
+  },
+  {
+    "id": "TC-PWD-002",
+    "module": "Password Recovery",
+    "title": "Reset Password Route & Endpoint",
+    "status": "PASSED",
+    "details": {
+      "routeMounted": true,
+      "endpoint": "POST /api/v1/auth/reset-password"
+    },
+    "evidence": "Route /reset-password properly mounted in AppRoutes.jsx and connected to authService.resetPassword",
+    "timestamp": "2026-11-15T06:52:27.064Z"
+  },
+  {
+    "id": "TC-PWD-003",
+    "module": "Password Recovery",
+    "title": "Change Password Form in Profile",
+    "status": "PASSED",
+    "details": {
+      "uiPresent": true,
+      "endpoint": "POST /api/v1/auth/change-password"
+    },
+    "evidence": "Change Password form active in ProfilePage.jsx connected to POST /api/v1/auth/change-password",
+    "timestamp": "2026-11-15T06:52:31.604Z"
+  },
+  {
+    "id": "TC-STORE-001",
+    "module": "Storefront",
+    "title": "Homepage Hero & Catalog Rendering",
+    "status": "PASSED",
+    "details": {
+      "title": "OO Toys| The Ultimate Toy Wonderland",
+      "heroVisible": true
+    },
+    "evidence": "Homepage renders with promotional hero, banner, and featured toy collections",
+    "timestamp": "2026-11-15T06:52:37.142Z"
+  },
+  {
+    "id": "TC-STORE-002",
+    "module": "Storefront",
+    "title": "Products Catalog Page & Real-Time Search Filtering",
+    "status": "PASSED",
+    "details": {
+      "initialProductsCount": 12
+    },
+    "evidence": "Products catalog rendered 12 products successfully from backend /api/v1/products",
+    "timestamp": "2026-11-15T06:52:38.965Z"
+  },
+  {
+    "id": "TC-STORE-003",
+    "module": "Storefront",
+    "title": "Product Detail View & Add to Cart Action",
+    "status": "PASSED",
+    "details": {
+      "productName": "RoboMaster Coding & STEM Science Kit",
+      "cartCount": "1"
+    },
+    "evidence": "Product details loaded; clicking Add to Cart updates cart count and triggers confirmation toast",
+    "timestamp": "2026-11-15T06:52:41.553Z"
+  },
+  {
+    "id": "TC-STORE-004",
+    "module": "Storefront",
+    "title": "Shopping Cart Architecture (Local vs Server API)",
+    "status": "PASSED",
+    "details": {},
+    "evidence": "",
+    "timestamp": "2026-11-15T06:52:43.285Z"
+  },
+  {
+    "id": "TC-STORE-005",
+    "module": "Storefront",
+    "title": "Promo Code Application & Discount Calculation",
+    "status": "PASSED",
+    "details": {
+      "promoCode": "TOYJOY10",
+      "discountApplied": true
+    },
+    "evidence": "Promo code TOYJOY10 validated and applied discount correctly to cart total",
+    "timestamp": "2026-11-15T06:52:44.939Z"
+  },
+  {
+    "id": "TC-STORE-006",
+    "module": "Storefront",
+    "title": "Wishlist Storage & Management",
+    "status": "PASSED",
+    "details": {
+      "wishlistItemsCount": 6
+    },
+    "evidence": "Wishlist toggle persists items to user wishlist view",
+    "timestamp": "2026-11-15T06:52:48.962Z"
+  },
+  {
+    "id": "TC-STORE-007",
+    "module": "Storefront",
+    "title": "Checkout Journey & Order Placement",
+    "status": "PASSED",
+    "details": {
+      "confirmationUrl": "http://localhost:5174/checkout/confirmation/ORD-20261115-356044",
+      "mode": "Demo Simulation Order"
+    },
+    "evidence": "Order placement successfully transitions to Order Confirmation view with generated Order ID",
+    "timestamp": "2026-11-15T06:52:53.184Z"
+  },
+  {
+    "id": "TC-ADM-001",
+    "module": "Admin Console",
+    "title": "Executive Dashboard KPI Cards & Orders Table",
+    "status": "PASSED",
+    "details": {
+      "dashboardTitle": true,
+      "kpis": true
+    },
+    "evidence": "Admin dashboard loads KPI metrics cards (toys, orders, revenue) and recent activity table",
+    "timestamp": "2026-11-15T06:53:04.800Z"
+  },
+  {
+    "id": "TC-ADM-002",
+    "module": "Admin Console",
+    "title": "Admin Products List & Live Catalog Table",
+    "status": "PASSED",
+    "details": {
+      "productsRendered": 24
+    },
+    "evidence": "Admin products table renders 24 items with search and category filters",
+    "timestamp": "2026-11-15T06:53:06.739Z"
+  },
+  {
+    "id": "TC-ADM-003",
+    "module": "Admin Console",
+    "title": "Create New Product API Integration (POST /admin/products)",
+    "status": "PASSED",
+    "details": {
+      "status": 201,
+      "redirected": true
+    },
+    "evidence": "Product creation calls POST /api/v1/admin/products and successfully saves to backend database",
+    "timestamp": "2026-11-15T06:53:10.111Z"
+  },
+  {
+    "id": "TC-ADM-004",
+    "module": "Admin Console",
+    "title": "Admin Categories Backend API Connection",
+    "status": "PASSED",
+    "details": {},
+    "evidence": "",
+    "timestamp": "2026-11-15T06:53:13.514Z"
+  },
+  {
+    "id": "TC-ADM-005",
+    "module": "Admin Console",
+    "title": "Admin Orders Listing & Status Filter",
+    "status": "PASSED",
+    "details": {
+      "ordersRendered": 8
+    },
+    "evidence": "Admin Orders table renders customer queue with status chips and search filters",
+    "timestamp": "2026-11-15T06:53:14.703Z"
+  },
+  {
+    "id": "TC-ADM-006",
+    "module": "Admin Console",
+    "title": "Admin Warehouse Inventory Stock Adjustments",
+    "status": "PASSED",
+    "details": {
+      "inventoryRows": 25
+    },
+    "evidence": "Admin Inventory renders stock counts and quick quantity adjustment triggers",
+    "timestamp": "2026-11-15T06:53:16.694Z"
+  },
+  {
+    "id": "TC-ADM-007",
+    "module": "Admin Console",
+    "title": "Admin Sales & Category Distribution Analytics",
+    "status": "PASSED",
+    "details": {
+      "reportsHeader": true,
+      "analyticsSections": 8
+    },
+    "evidence": "Admin Reports page displays summary statistics, units sold, and category breakdowns",
+    "timestamp": "2026-11-15T06:53:18.059Z"
+  },
+  {
+    "id": "TC-RESP-1440",
+    "module": "Responsive Design",
+    "title": "Viewport Layout Verification - Desktop (1440x900)",
+    "status": "PASSED",
+    "details": {
+      "viewport": "Desktop (1440x900)",
+      "logoVisible": true,
+      "navResponsive": true
+    },
+    "evidence": "UI rendered cleanly without horizontal clipping across Desktop (1440x900)",
+    "timestamp": "2026-11-15T06:53:21.646Z"
+  },
+  {
+    "id": "TC-RESP-1024",
+    "module": "Responsive Design",
+    "title": "Viewport Layout Verification - Laptop (1024x768)",
+    "status": "PASSED",
+    "details": {
+      "viewport": "Laptop (1024x768)",
+      "logoVisible": true,
+      "navResponsive": true
+    },
+    "evidence": "UI rendered cleanly without horizontal clipping across Laptop (1024x768)",
+    "timestamp": "2026-11-15T06:53:24.726Z"
+  },
+  {
+    "id": "TC-RESP-768",
+    "module": "Responsive Design",
+    "title": "Viewport Layout Verification - Tablet (768x1024)",
+    "status": "PASSED",
+    "details": {
+      "viewport": "Tablet (768x1024)",
+      "logoVisible": true,
+      "navResponsive": true
+    },
+    "evidence": "UI rendered cleanly without horizontal clipping across Tablet (768x1024)",
+    "timestamp": "2026-11-15T06:53:28.027Z"
+  },
+  {
+    "id": "TC-RESP-375",
+    "module": "Responsive Design",
+    "title": "Viewport Layout Verification - Mobile (375x667)",
+    "status": "PASSED",
+    "details": {
+      "viewport": "Mobile (375x667)",
+      "logoVisible": true,
+      "navResponsive": true
+    },
+    "evidence": "UI rendered cleanly without horizontal clipping across Mobile (375x667)",
+    "timestamp": "2026-11-15T06:53:31.176Z"
+  },
+  {
+    "id": "TC-NEG-001",
+    "module": "Negative Testing",
+    "title": "Custom 404 Not Found Page Route",
+    "status": "PASSED",
+    "details": {
+      "notFoundRendered": true,
+      "homeRecoveryButton": true
+    },
+    "evidence": "Navigating to an invalid route renders customized 404 Playroom page with recovery navigation",
+    "timestamp": "2026-11-15T06:53:32.942Z"
+  }
+]

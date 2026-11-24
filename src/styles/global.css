@@ -1,0 +1,329 @@
+@import 'bootstrap/dist/css/bootstrap.min.css';
+@import './variables.css';
+
+/* Base Styles */
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  font-family: var(--tw-font-body);
+  background-color: var(--tw-bg-main);
+  color: var(--tw-text-dark);
+  line-height: 1.6;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  overflow-x: hidden;
+}
+
+h1,
+h2,
+h3,
+h4,
+h5,
+h6,
+.brand-font {
+  font-family: var(--tw-font-heading);
+  letter-spacing: 0.02em;
+  color: var(--tw-text-dark);
+}
+
+a {
+  text-decoration: none;
+  color: inherit;
+  transition: var(--tw-transition);
+}
+
+img {
+  max-width: 100%;
+  height: auto;
+  display: block;
+}
+
+/* OO Toys Button Styles */
+.btn-tw-primary {
+  background: linear-gradient(135deg, var(--tw-primary), #0284c7);
+  color: #fff;
+  border: none;
+  border-radius: var(--tw-radius-full);
+  font-weight: 700;
+  padding: 0.65rem 1.4rem;
+  box-shadow: 0 4px 14px rgba(2, 132, 199, 0.28);
+  transition: var(--tw-transition-bounce);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+}
+
+.btn-tw-primary:hover {
+  background: linear-gradient(135deg, var(--tw-primary-hover), #0284c7);
+  color: #fff;
+  transform: translateY(-2px);
+  box-shadow: 0 8px 20px rgba(2, 132, 199, 0.38);
+}
+
+.btn-tw-secondary {
+  background: linear-gradient(135deg, var(--tw-secondary), #f97316);
+  color: #fff;
+  border: none;
+  border-radius: var(--tw-radius-full);
+  font-weight: 700;
+  padding: 0.65rem 1.4rem;
+  box-shadow: 0 4px 14px rgba(249, 115, 22, 0.28);
+  transition: var(--tw-transition-bounce);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+}
+
+.btn-tw-secondary:hover {
+  background: linear-gradient(135deg, var(--tw-secondary-hover), #ea580c);
+  color: #fff;
+  transform: translateY(-2px);
+  box-shadow: 0 8px 20px rgba(249, 115, 22, 0.38);
+}
+
+.btn-tw-coral {
+  background: linear-gradient(135deg, var(--tw-coral), #f43f5e);
+  color: #fff;
+  border: none;
+  border-radius: var(--tw-radius-full);
+  font-weight: 700;
+  padding: 0.65rem 1.4rem;
+  box-shadow: 0 4px 14px rgba(255, 107, 107, 0.28);
+  transition: var(--tw-transition-bounce);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+}
+
+.btn-tw-coral:hover {
+  background: linear-gradient(135deg, var(--tw-coral-hover), #e11d48);
+  color: #fff;
+  transform: translateY(-2px);
+  box-shadow: 0 8px 20px rgba(255, 107, 107, 0.38);
+}
+
+.btn-tw-yellow {
+  background: linear-gradient(135deg, var(--tw-accent-yellow), #f59e0b);
+  color: #78350f;
+  border: none;
+  border-radius: var(--tw-radius-full);
+  font-weight: 800;
+  padding: 0.65rem 1.4rem;
+  box-shadow: 0 4px 14px rgba(251, 191, 36, 0.3);
+  transition: var(--tw-transition-bounce);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+}
+
+.btn-tw-yellow:hover {
+  background: linear-gradient(135deg, #f59e0b, #d97706);
+  color: #fff;
+  transform: translateY(-2px);
+}
+
+.btn-tw-outline {
+  background: transparent;
+  color: var(--tw-primary);
+  border: 2px solid var(--tw-primary);
+  border-radius: var(--tw-radius-full);
+  font-weight: 700;
+  padding: 0.6rem 1.3rem;
+  transition: var(--tw-transition);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+}
+
+.btn-tw-outline:hover {
+  background: var(--tw-primary-light);
+  color: var(--tw-primary-hover);
+  border-color: var(--tw-primary-hover);
+}
+
+/* Card Styling */
+.tw-card {
+  background: #ffffff;
+  border-radius: var(--tw-radius-lg);
+  border: 1px solid var(--tw-border);
+  box-shadow: var(--tw-shadow-sm);
+  transition: var(--tw-transition);
+  overflow: hidden;
+}
+
+.tw-card:hover {
+  box-shadow: var(--tw-shadow-card-hover);
+}
+
+/* Badges */
+.tw-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  padding: 0.3rem 0.75rem;
+  font-size: 0.75rem;
+  font-weight: 700;
+  border-radius: var(--tw-radius-full);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.tw-badge-sale {
+  background-color: var(--tw-coral-light);
+  color: #e11d48;
+}
+
+.tw-badge-new {
+  background-color: var(--tw-primary-light);
+  color: var(--tw-primary-hover);
+}
+
+.tw-badge-featured {
+  background-color: var(--tw-purple-light);
+  color: var(--tw-purple-hover);
+}
+
+.tw-badge-stock {
+  background-color: var(--tw-green-light);
+  color: #065f46;
+}
+
+.tw-badge-low {
+  background-color: var(--tw-accent-yellow-light);
+  color: #92400e;
+}
+
+/* Pill Age Tags */
+.tw-age-pill {
+  display: inline-block;
+  background: var(--tw-bg-muted);
+  color: var(--tw-text-muted);
+  font-size: 0.78rem;
+  font-weight: 600;
+  padding: 0.2rem 0.6rem;
+  border-radius: var(--tw-radius-full);
+}
+
+/* Custom OO Toys Logo */
+.tw-logo {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-family: var(--tw-font-heading);
+  font-size: 1.75rem;
+  font-weight: 700;
+  color: var(--tw-text-dark);
+}
+
+.tw-logo span.toy {
+  color: var(--tw-coral);
+  position: relative;
+}
+
+.tw-logo span.world {
+  color: var(--tw-primary);
+}
+
+.tw-logo-icon {
+  background: linear-gradient(135deg, var(--tw-coral), var(--tw-secondary));
+  color: white;
+  width: 40px;
+  height: 40px;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 4px 10px rgba(255, 107, 107, 0.35);
+  transform: rotate(-6deg);
+  transition: transform 0.25s ease;
+}
+
+.tw-logo:hover .tw-logo-icon {
+  transform: rotate(6deg) scale(1.08);
+}
+
+.tw-navbar-logo {
+  height: 100px;
+  width: auto;
+  max-width: 170px;
+  object-fit: contain;
+  display: block;
+  transition: transform 0.25s ease;
+}
+
+.tw-logo:hover .tw-navbar-logo {
+  transform: scale(1.04);
+}
+
+/* Announcement Top Bar */
+.announcement-bar {
+  background: linear-gradient(90deg, #7c3aed, #0284c7, #f97316);
+  color: #ffffff;
+  font-size: 0.85rem;
+  font-weight: 600;
+  padding: 0.45rem 1rem;
+  text-align: center;
+}
+
+/* Custom Scrollbar */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: #f1f5f9;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #cbd5e1;
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #94a3b8;
+}
+
+/* Animation utilities */
+@keyframes floatAnimation {
+  0% {
+    transform: translateY(0px);
+  }
+
+  50% {
+    transform: translateY(-8px);
+  }
+
+  100% {
+    transform: translateY(0px);
+  }
+}
+
+.animate-float {
+  animation: floatAnimation 4s ease-in-out infinite;
+}
+
+@keyframes pulseGlow {
+
+  0%,
+  100% {
+    opacity: 0.6;
+  }
+
+  50% {
+    opacity: 1;
+  }
+}
+
+.animate-pulse-glow {
+  animation: pulseGlow 2.5s infinite;
+}
