@@ -4,7 +4,7 @@ pipeline {
     environment {
         APP_NAME        = 'ecomm-frontend'
         IMAGE_NAME      = 'ecomm-frontend:latest'
-        FRONTEND_PORT   = '8001'
+        FRONTEND_PORT   = '3000'
         DOCKER_NETWORK  = 'jenkins-mysql_default'
     }
 
