@@ -1,6 +1,11 @@
 pipeline {
     agent any
 
+    options {
+        timestamps()
+        disableConcurrentBuilds()
+    }
+
     environment {
         APP_NAME        = 'ecomm-frontend'
         IMAGE_NAME      = 'ecomm-frontend:latest'
@@ -35,6 +40,25 @@ pipeline {
                         "$IMAGE_NAME"
                 '''
             }
+        }
+
+        stage('Verify Deployment') {
+            steps {
+                sh '''
+                    sleep 5
+                    docker ps --filter "name=$APP_NAME"
+                    docker logs --tail 30 "$APP_NAME"
+                '''
+            }
+        }
+    }
+
+    post {
+        success {
+            echo 'E-Commerce Frontend CI/CD completed successfully!'
+        }
+        failure {
+            echo 'Pipeline failed. Check Console Output.'
         }
     }
 }
