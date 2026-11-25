@@ -134,6 +134,7 @@ export const AdminOrdersPage = () => {
                   <th>Customer</th>
                   <th>Items</th>
                   <th>Total</th>
+                  <th>Payment</th>
                   <th>Update Status</th>
                   <th className="text-end">Details</th>
                 </tr>
@@ -153,6 +154,15 @@ export const AdminOrdersPage = () => {
                       </span>
                     </td>
                     <td className="fw-bolder">{formatCurrency(ord.total)}</td>
+                    <td>
+                      <span className={`badge ${
+                        (ord.paymentMethod || '').toLowerCase().includes('cash') || (ord.paymentMethod || '').toLowerCase().includes('cod')
+                          ? 'bg-success-subtle text-success border border-success'
+                          : 'bg-primary-subtle text-primary border border-primary'
+                      } rounded-pill px-2 py-1`}>
+                        {(ord.paymentMethod || '').toLowerCase().includes('cash') || (ord.paymentMethod || '').toLowerCase().includes('cod') ? 'COD' : 'Razorpay'}
+                      </span>
+                    </td>
                     <td>
                       <select
                         className={`form-select form-select-sm rounded-pill fw-bold ${
@@ -221,7 +231,21 @@ export const AdminOrdersPage = () => {
                     ].filter(Boolean).join(', ')
                   : 'Not Provided'}
               </div>
-              <div className="mt-1"><strong>Payment Method:</strong> {selectedOrder.paymentMethod || 'Razorpay / UPI'}</div>
+              <div className="mt-1 d-flex align-items-center gap-2">
+                <strong>Payment Method:</strong>
+                <span className={`badge ${
+                  (selectedOrder.paymentMethod || '').toLowerCase().includes('cash') || (selectedOrder.paymentMethod || '').toLowerCase().includes('cod')
+                    ? 'bg-success-subtle text-success border border-success'
+                    : 'bg-primary-subtle text-primary border border-primary'
+                } rounded-pill px-2 py-1`}>
+                  {selectedOrder.paymentMethod || 'Cash on Delivery (COD)'}
+                </span>
+                {selectedOrder.paymentStatus && (
+                  <span className="badge bg-light text-muted border rounded-pill px-2 py-1">
+                    {selectedOrder.paymentStatus}
+                  </span>
+                )}
+              </div>
               <div><strong>Tracking Code:</strong> {selectedOrder.trackingNumber || 'TRK-IND-000001'}</div>
             </div>
 

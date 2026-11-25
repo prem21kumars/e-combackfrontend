@@ -80,8 +80,30 @@ const mapBackendOrder = (o) => {
     shipping: Number(o.shippingFee ?? 0),
     discount: Number(o.discountAmount ?? 0),
     total: Number(o.totalAmount ?? 0),
-    paymentMethod: o.razorpayOrderId ? 'Razorpay Secure' : 'Razorpay / UPI',
-    paymentStatus: o.status === 'CONFIRMED' || o.status === 'DELIVERED' ? 'Paid' : 'Pending',
+    paymentMethod: (() => {
+      let pm = o.paymentMethod;
+      if (!pm) {
+        const existingOrders = getStorageItem(ORDERS_STORAGE_KEY) || [];
+        const matched = existingOrders.find(
+          (m) => String(m.id) === String(orderNumber) || String(m.orderNumber) === String(orderNumber) || String(m.backendId) === String(o.id)
+        );
+        if (matched && matched.paymentMethod) return matched.paymentMethod;
+        if (o.razorpayOrderId && !o.razorpayOrderId.startsWith('COD-')) return 'Razorpay / UPI';
+        return 'Cash on Delivery (COD)';
+      }
+      if (pm === 'CASH_ON_DELIVERY' || pm.toLowerCase().includes('cash') || pm.toLowerCase().includes('cod')) {
+        return 'Cash on Delivery (COD)';
+      }
+      if (pm === 'RAZORPAY') return 'Razorpay / UPI';
+      return pm;
+    })(),
+    paymentStatus: (() => {
+      const pm = (o.paymentMethod || '').toLowerCase();
+      if (pm.includes('cash') || pm.includes('cod') || !o.razorpayOrderId) {
+        return o.status === 'DELIVERED' ? 'Collected on Handover' : 'Pending (Cash on Delivery)';
+      }
+      return o.status === 'CONFIRMED' || o.status === 'DELIVERED' ? 'Paid' : 'Pending';
+    })(),
     orderStatus: o.status || 'Ordered',
     trackingNumber: `TRK-IND-${String(o.id || 1000).padStart(6, '0')}`,
     statusTimeline: [
@@ -183,12 +205,15 @@ export const orderService = {
     // When placing an order through the authenticated backend
     if (orderPayload.shippingAddressId) {
       try {
+        const isCodOrder = orderPayload.paymentMethod?.toLowerCase().includes('cash') || orderPayload.paymentMethod?.toLowerCase().includes('cod');
         const response = await apiClient.post('/orders', {
           shippingAddressId: orderPayload.shippingAddressId,
           couponCode: orderPayload.couponCode || undefined,
+          paymentMethod: isCodOrder ? 'CASH_ON_DELIVERY' : 'RAZORPAY',
         });
         if (response.data?.data) {
           const backendCreated = mapBackendOrder(response.data.data);
+          backendCreated.paymentMethod = orderPayload.paymentMethod || backendCreated.paymentMethod;
           setStorageItem(ORDERS_STORAGE_KEY, [backendCreated, ...orders]);
           return backendCreated;
         }
