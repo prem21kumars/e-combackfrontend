@@ -16,11 +16,27 @@ export const AuthProvider = ({ children }) => {
   const login = async (email, password, role = 'customer') => {
     setLoading(true);
     try {
-      const user = await authService.login(email, password, role);
+      const res = await authService.login(email, password, role);
+      if (res?.mfaRequired) {
+        return { success: true, mfaRequired: true, preAuthToken: res.preAuthToken };
+      }
+      setAuthData(authService.getCurrentUser());
+      return { success: true, user: res };
+    } catch (err) {
+      setAuthData(null);
+      return { success: false, error: err.message };
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const verifyMfa = async (preAuthToken, code) => {
+    setLoading(true);
+    try {
+      const user = await authService.verifyMfa(preAuthToken, code);
       setAuthData(authService.getCurrentUser());
       return { success: true, user };
     } catch (err) {
-      setAuthData(null);
       return { success: false, error: err.message };
     } finally {
       setLoading(false);
@@ -30,13 +46,25 @@ export const AuthProvider = ({ children }) => {
   const loginWithGoogle = async (idToken = null, userEmail = null) => {
     setLoading(true);
     try {
-      const user = await authService.loginWithGoogle(idToken, userEmail);
+      const res = await authService.loginWithGoogle(idToken, userEmail);
+      if (res?.mfaRequired) {
+        return { success: true, mfaRequired: true, preAuthToken: res.preAuthToken };
+      }
       setAuthData(authService.getCurrentUser());
-      return { success: true, user };
+      return { success: true, user: res };
     } catch (err) {
       return { success: false, error: err.message };
     } finally {
       setLoading(false);
+    }
+  };
+
+  const setMfaStatus = (enabled) => {
+    const cur = authService.getCurrentUser();
+    if (cur) {
+      cur.mfaEnabled = enabled;
+      localStorage.setItem('ecommerce_user', JSON.stringify({ ...JSON.parse(localStorage.getItem('ecommerce_user') || '{}'), user: cur }));
+      setAuthData({ ...authData, user: cur });
     }
   };
 
@@ -90,6 +118,8 @@ export const AuthProvider = ({ children }) => {
         loading,
         login,
         loginWithGoogle,
+        verifyMfa,
+        setMfaStatus,
         register,
         logout,
         updateProfile,

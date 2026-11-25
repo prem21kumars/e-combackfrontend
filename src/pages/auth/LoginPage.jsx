@@ -11,8 +11,12 @@ export const LoginPage = () => {
   const [googleLoading, setGoogleLoading] = useState(false);
   const [showGoogleModal, setShowGoogleModal] = useState(false);
   const [customGoogleEmail, setCustomGoogleEmail] = useState('');
+  const [mfaChallenge, setMfaChallenge] = useState(false);
+  const [preAuthToken, setPreAuthToken] = useState('');
+  const [totpCode, setTotpCode] = useState('');
+  const [mfaLoading, setMfaLoading] = useState(false);
 
-  const { login, loginWithGoogle, demoLoginCustomer, demoLoginAdmin, loading } = useAuth();
+  const { login, loginWithGoogle, verifyMfa, demoLoginCustomer, demoLoginAdmin, loading } = useAuth();
   const navigate = useNavigate();
 
   const searchParams = new URLSearchParams(location.search);
@@ -29,6 +33,11 @@ export const LoginPage = () => {
     setError('');
     const res = await login(email, password);
     if (res.success) {
+      if (res.mfaRequired) {
+        setPreAuthToken(res.preAuthToken);
+        setMfaChallenge(true);
+        return;
+      }
       if (res.user?.role === 'admin' && (!location.state?.from || location.state?.from === '/')) {
         navigate('/admin');
       } else {
@@ -36,6 +45,27 @@ export const LoginPage = () => {
       }
     } else {
       setError(res.error || 'Failed to login. Please check your credentials.');
+    }
+  };
+
+  const handleMfaSubmit = async (e) => {
+    e.preventDefault();
+    if (!totpCode || totpCode.trim().length !== 6) {
+      setError('Please enter a 6-digit code from Google Authenticator.');
+      return;
+    }
+    setMfaLoading(true);
+    setError('');
+    const res = await verifyMfa(preAuthToken, totpCode);
+    setMfaLoading(false);
+    if (res.success) {
+      if (res.user?.role === 'admin' && (!location.state?.from || location.state?.from === '/')) {
+        navigate('/admin');
+      } else {
+        navigate(redirectPath);
+      }
+    } else {
+      setError(res.error || 'Invalid 6-digit code. Please check Google Authenticator.');
     }
   };
 
@@ -48,6 +78,11 @@ export const LoginPage = () => {
       const res = await loginWithGoogle(null, providedEmail || 'alex.taylor@gmail.com');
       if (res.success) {
         setShowGoogleModal(false);
+        if (res.mfaRequired) {
+          setPreAuthToken(res.preAuthToken);
+          setMfaChallenge(true);
+          return;
+        }
         if (res.user?.role === 'admin' && (!location.state?.from || location.state?.from === '/')) {
           navigate('/admin');
         } else {
@@ -118,6 +153,62 @@ export const LoginPage = () => {
               </div>
             )}
 
+            {mfaChallenge ? (
+              /* Two-Factor Authentication Challenge Screen */
+              <form onSubmit={handleMfaSubmit} className="py-2">
+                <div className="text-center mb-4">
+                  <div className="rounded-circle bg-primary-subtle text-primary d-inline-flex p-3 mb-2">
+                    <ShieldCheck size={36} />
+                  </div>
+                  <h4 className="fw-bold mb-1">Two-Factor Authentication</h4>
+                  <p className="text-muted small">
+                    Enter the 6-digit code from the <strong>Google Authenticator</strong> app on your smartphone.
+                  </p>
+                </div>
+
+                <div className="mb-4">
+                  <label className="form-label small fw-bold text-muted text-center d-block">
+                    6-Digit Verification Code
+                  </label>
+                  <input
+                    type="text"
+                    inputMode="numeric"
+                    pattern="[0-9]*"
+                    maxLength={6}
+                    autoFocus
+                    required
+                    className="form-control form-control-lg text-center rounded-pill fw-bold"
+                    style={{ letterSpacing: '0.4rem', fontSize: '1.4rem' }}
+                    placeholder="123456"
+                    value={totpCode}
+                    onChange={(e) => setTotpCode(e.target.value.replace(/\D/g, '').slice(0, 6))}
+                  />
+                </div>
+
+                <button
+                  type="submit"
+                  disabled={mfaLoading || totpCode.length !== 6}
+                  className="btn btn-tw-primary w-100 py-3 rounded-pill fw-bold mb-3 shadow-sm"
+                >
+                  {mfaLoading ? 'Verifying Code...' : 'Verify & Continue'}
+                </button>
+
+                <div className="text-center">
+                  <button
+                    type="button"
+                    className="btn btn-link text-muted small text-decoration-none"
+                    onClick={() => {
+                      setMfaChallenge(false);
+                      setTotpCode('');
+                      setError('');
+                    }}
+                  >
+                    &larr; Back to login
+                  </button>
+                </div>
+              </form>
+            ) : (
+              <>
             {/* 1. PRIMARY: Official Google OAuth 2.0 Sign In Button */}
             <button
               type="button"
@@ -248,6 +339,8 @@ export const LoginPage = () => {
                 Register Free
               </Link>
             </div>
+            </>
+            )}
 
             {/* Subtle Developer Quick-Switch */}
             <div className="pt-3 border-top text-center">

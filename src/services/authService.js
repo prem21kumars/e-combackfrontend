@@ -62,6 +62,7 @@ const mapBackendUser = (backendUser, token, refreshToken) => {
     email: backendUser.email,
     role: isAdmin ? 'admin' : 'customer',
     roles: roles,
+    mfaEnabled: !!backendUser.mfaEnabled,
     phone: backendUser.phoneNumber || '',
     avatar: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=200&q=80',
     addresses: [
@@ -99,6 +100,12 @@ export const authService = {
       });
 
       const authData = response.data.data;
+      if (authData.mfaRequired) {
+        return {
+          mfaRequired: true,
+          preAuthToken: authData.preAuthToken,
+        };
+      }
       const user = mapBackendUser(authData.user, authData.accessToken, authData.refreshToken);
 
       const authPayload = {
@@ -130,6 +137,12 @@ export const authService = {
       });
 
       const authData = response.data.data;
+      if (authData.mfaRequired) {
+        return {
+          mfaRequired: true,
+          preAuthToken: authData.preAuthToken,
+        };
+      }
       const user = mapBackendUser(authData.user, authData.accessToken, authData.refreshToken);
 
       const authPayload = {
@@ -165,6 +178,12 @@ export const authService = {
       });
 
       const authData = response.data.data;
+      if (authData.mfaRequired) {
+        return {
+          mfaRequired: true,
+          preAuthToken: authData.preAuthToken,
+        };
+      }
       const user = mapBackendUser(authData.user, authData.accessToken, authData.refreshToken);
 
       if (userData.street) {
@@ -298,6 +317,67 @@ export const authService = {
       };
     } catch (err) {
       throw new Error(extractErrorMessage(err, 'Failed to change password'));
+    }
+  },
+
+  /**
+   * 2FA: Initiate Google Authenticator TOTP Setup: POST /api/v1/auth/mfa/setup
+   */
+  async initiateMfaSetup() {
+    try {
+      const response = await apiClient.post('/auth/mfa/setup');
+      return response.data?.data;
+    } catch (err) {
+      throw new Error(extractErrorMessage(err, 'Failed to initiate MFA setup'));
+    }
+  },
+
+  /**
+   * 2FA: Confirm & Activate Google Authenticator with 6-digit TOTP code: POST /api/v1/auth/mfa/activate?code=
+   */
+  async activateMfa(code) {
+    try {
+      const response = await apiClient.post(`/auth/mfa/activate?code=${encodeURIComponent(code)}`);
+      return response.data?.data; // returns recoveryCodes array
+    } catch (err) {
+      throw new Error(extractErrorMessage(err, 'Invalid authenticator code. Check your clock.'));
+    }
+  },
+
+  /**
+   * 2FA: Verify MFA challenge during login: POST /api/v1/auth/mfa/verify
+   */
+  async verifyMfa(preAuthToken, code) {
+    try {
+      const response = await apiClient.post('/auth/mfa/verify', {
+        preAuthToken,
+        code: code.trim(),
+      });
+      const authData = response.data?.data;
+      const user = mapBackendUser(authData.user, authData.accessToken, authData.refreshToken);
+      const authPayload = {
+        user,
+        token: authData.accessToken,
+        accessToken: authData.accessToken,
+        refreshToken: authData.refreshToken,
+        loginTime: new Date().toISOString(),
+      };
+      setStorageItem(AUTH_STORAGE_KEY, authPayload);
+      return user;
+    } catch (err) {
+      throw new Error(extractErrorMessage(err, 'Verification failed. Incorrect TOTP code.'));
+    }
+  },
+
+  /**
+   * 2FA: Disable MFA: POST /api/v1/auth/mfa/disable?code=
+   */
+  async disableMfa(code) {
+    try {
+      const response = await apiClient.post(`/auth/mfa/disable?code=${encodeURIComponent(code)}`);
+      return response.data?.data;
+    } catch (err) {
+      throw new Error(extractErrorMessage(err, 'Failed to disable 2FA. Invalid authenticator code.'));
     }
   },
 };
