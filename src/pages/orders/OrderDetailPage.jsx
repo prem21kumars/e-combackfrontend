@@ -13,14 +13,19 @@ import {
   Sparkles
 } from 'lucide-react';
 import { orderService } from '../../services/orderService';
+import { useAuth } from '../../context/AuthContext';
 import { formatCurrency, formatDate } from '../../utils/formatters';
 
 export const OrderDetailPage = () => {
   const { id } = useParams();
+  const { user } = useAuth();
   const [order, setOrder] = useState(null);
   const [loading, setLoading] = useState(true);
   const [cancelModalOpen, setCancelModalOpen] = useState(false);
-  const [cancelReason, setCancelReason] = useState('Found a better price elsewhere');
+  const [cancelReason, setCancelReason] = useState('Ordered by mistake');
+  const [cancelLoading, setCancelLoading] = useState(false);
+  const [cancelError, setCancelError] = useState('');
+  const [cancelSuccess, setCancelSuccess] = useState(false);
 
   useEffect(() => {
     const fetchOrder = async () => {
@@ -38,13 +43,17 @@ export const OrderDetailPage = () => {
   }, [id]);
 
   const handleCancelOrder = async () => {
+    setCancelLoading(true);
+    setCancelError('');
     try {
-      const updated = await orderService.requestCancellation(order.id, cancelReason);
+      const updated = await orderService.requestCancellation(order.orderNumber || order.id, cancelReason);
       setOrder(updated);
+      setCancelSuccess(true);
       setCancelModalOpen(false);
-      alert('Demo order cancellation requested successfully!');
     } catch (err) {
-      alert('Could not cancel order');
+      setCancelError(err.message || 'Could not cancel order');
+    } finally {
+      setCancelLoading(false);
     }
   };
 
@@ -70,10 +79,40 @@ export const OrderDetailPage = () => {
     );
   }
 
+  const orderStatusUpper = (order.orderStatus || '').toUpperCase();
+  const isCancelled = orderStatusUpper === 'CANCELLED';
+  const isCompleted = ['SHIPPED', 'DELIVERED'].includes(orderStatusUpper);
+  const isEligibleStatus = !isCancelled && !isCompleted && [
+    'ORDERED', 'PENDING', 'PAYMENT_PENDING', 'CONFIRMED', 'PROCESSING'
+  ].includes(orderStatusUpper);
+
+  // 1-Day (24-Hour) Rule:
+  // Normal customers can only cancel within 24 hours of placement.
+  // After 24 hours (1 day), only an administrator can change or cancel the order.
+  const isAdmin = user?.role === 'admin' || user?.role === 'ROLE_ADMIN' || user?.role === 'ROLE_SUPER_ADMIN';
+  const orderDate = order.createdAt || order.date;
+  const orderTimestamp = orderDate ? new Date(orderDate).getTime() : Date.now();
+  const hoursSinceOrder = (Date.now() - orderTimestamp) / (1000 * 60 * 60);
+  const isWithinOneDay = hoursSinceOrder <= 24;
+
+  const canCancel = isEligibleStatus && (isAdmin || isWithinOneDay);
+  const isPastOneDay = isEligibleStatus && !isWithinOneDay && !isAdmin;
+
+  const getStepIndex = (status) => {
+    switch ((status || '').toUpperCase()) {
+      case 'DELIVERED': return 3;
+      case 'SHIPPED': return 2;
+      case 'PROCESSING': return 1;
+      case 'ORDERED':
+      case 'CONFIRMED':
+      case 'PAYMENT_PENDING':
+      case 'PENDING':
+      default:
+        return 0;
+    }
+  };
   const steps = ['Ordered', 'Processing', 'Shipped', 'Delivered'];
-  const currentStepIndex = steps.indexOf(order.orderStatus);
-  const isCancelled = order.orderStatus === 'Cancelled';
-  const canCancel = ['Ordered', 'Processing'].includes(order.orderStatus);
+  const currentStepIndex = getStepIndex(order.orderStatus);
 
   return (
     <div className="container py-4">
@@ -98,21 +137,43 @@ export const OrderDetailPage = () => {
           <span className="text-muted small">Placed on {formatDate(order.date)}</span>
         </div>
 
-        <div className="d-flex align-items-center gap-2">
+        <div className="d-flex flex-wrap align-items-center gap-2">
           {canCancel && (
             <button
               type="button"
-              className="btn btn-outline-danger btn-sm rounded-pill px-3"
-              onClick={() => setCancelModalOpen(true)}
+              className="btn btn-danger btn-sm rounded-pill px-3 d-inline-flex align-items-center gap-1 shadow-sm"
+              onClick={() => {
+                setCancelError('');
+                setCancelModalOpen(true);
+              }}
             >
-              Request Cancellation
+              <XCircle size={15} />
+              <span>Cancel Order</span>
             </button>
           )}
+
+          {isPastOneDay && (
+            <div className="badge bg-warning-subtle text-dark border px-3 py-2 rounded-pill small d-inline-flex align-items-center gap-1" title="Customer cancellation window has expired (1 day / 24 hours limit)">
+              <Clock size={13} className="text-warning-emphasis" />
+              <span>1-Day cancellation limit passed. Only Admin can cancel.</span>
+            </div>
+          )}
+
           <Link to="/account/orders" className="btn btn-light btn-sm rounded-pill px-3 border">
             Back to Orders
           </Link>
         </div>
       </div>
+
+      {cancelSuccess && (
+        <div className="alert alert-success alert-dismissible fade show rounded-4 shadow-sm mb-4" role="alert">
+          <div className="d-flex align-items-center gap-2">
+            <CheckCircle size={18} />
+            <span><strong>Order Cancelled:</strong> Order #{order.id} has been cancelled successfully.</span>
+          </div>
+          <button type="button" className="btn-close" onClick={() => setCancelSuccess(false)}></button>
+        </div>
+      )}
 
       {/* Timeline Stepper */}
       <div className="bg-white rounded-5 border p-4 shadow-sm mb-4">
@@ -250,42 +311,80 @@ export const OrderDetailPage = () => {
       {/* Cancellation Modal */}
       {cancelModalOpen && (
         <>
-          <div className="mobile-nav-overlay" onClick={() => setCancelModalOpen(false)}></div>
+          <div className="mobile-nav-overlay" onClick={() => !cancelLoading && setCancelModalOpen(false)}></div>
           <div 
             className="position-fixed top-50 start-50 translate-middle bg-white rounded-5 p-4 shadow-lg border"
             style={{ width: '90%', maxWidth: '480px', zIndex: 1100 }}
           >
-            <h5 className="fw-bold mb-2">Request Order Cancellation</h5>
-            <p className="text-muted small mb-3">
-              Are you sure you want to cancel demo order <strong>{order.id}</strong>?
+            <div className="d-flex align-items-center justify-content-between pb-2 border-bottom mb-3">
+              <h5 className="fw-bold mb-0 text-danger d-flex align-items-center gap-2">
+                <AlertTriangle size={20} />
+                <span>Cancel Order</span>
+              </h5>
+              <button
+                type="button"
+                className="btn-close"
+                onClick={() => !cancelLoading && setCancelModalOpen(false)}
+              ></button>
+            </div>
+
+            <p className="text-muted small mb-2">
+              Are you sure you want to cancel order <strong>{order.id}</strong>?
             </p>
-            <div className="mb-3">
+
+            <div className="alert alert-info py-2 px-3 rounded-3 small mb-3">
+              {isAdmin ? (
+                <span>🛡️ <strong>Admin Authority:</strong> You can cancel or update this order at any stage.</span>
+              ) : (
+                <span>⏱️ <strong>Cancellation Policy:</strong> Orders can be cancelled within 24 hours (1 day) of placement.</span>
+              )}
+            </div>
+
+            {cancelError && (
+              <div className="alert alert-danger py-2 px-3 rounded-3 small mb-3">
+                {cancelError}
+              </div>
+            )}
+
+            <div className="mb-4">
               <label className="form-label small fw-bold">Reason for Cancellation</label>
               <select
                 className="form-select form-select-sm rounded-pill"
                 value={cancelReason}
                 onChange={(e) => setCancelReason(e.target.value)}
+                disabled={cancelLoading}
               >
                 <option value="Ordered by mistake">Ordered by mistake</option>
                 <option value="Found a better price elsewhere">Found a better price elsewhere</option>
-                <option value="Need to change delivery address">Need to change delivery address</option>
-                <option value="Demo test cancellation">Demo test cancellation</option>
+                <option value="Need to change delivery address or contact info">Need to change delivery address or contact info</option>
+                <option value="Delivery time too long">Delivery time too long</option>
+                <option value="Customer requested cancellation">Customer requested cancellation</option>
               </select>
             </div>
+
             <div className="d-flex justify-content-end gap-2">
               <button
                 type="button"
                 className="btn btn-light btn-sm rounded-pill px-3"
                 onClick={() => setCancelModalOpen(false)}
+                disabled={cancelLoading}
               >
                 Keep Order
               </button>
               <button
                 type="button"
-                className="btn btn-danger btn-sm rounded-pill px-3"
+                className="btn btn-danger btn-sm rounded-pill px-4 fw-bold"
                 onClick={handleCancelOrder}
+                disabled={cancelLoading}
               >
-                Confirm Cancellation
+                {cancelLoading ? (
+                  <>
+                    <span className="spinner-border spinner-border-sm me-1" role="status" aria-hidden="true"></span>
+                    Cancelling...
+                  </>
+                ) : (
+                  'Confirm Cancel'
+                )}
               </button>
             </div>
           </div>

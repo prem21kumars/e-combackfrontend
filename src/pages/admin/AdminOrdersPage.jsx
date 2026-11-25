@@ -284,8 +284,21 @@ export const AdminOrdersPage = () => {
               <span className="text-primary">{formatCurrency(selectedOrder.total)}</span>
             </div>
 
-            <div className="d-flex justify-content-end">
-              <button type="button" className="btn btn-tw-primary rounded-pill btn-sm px-4" onClick={() => setSelectedOrder(null)}>
+            <div className="d-flex justify-content-between align-items-center">
+              {!['CANCELLED', 'DELIVERED'].includes((selectedOrder.orderStatus || '').toUpperCase()) && (
+                <button
+                  type="button"
+                  className="btn btn-outline-danger btn-sm rounded-pill px-3"
+                  onClick={() => {
+                    if (window.confirm(`Are you sure you want to cancel order ${selectedOrder.id}?`)) {
+                      handleStatusChange(selectedOrder.backendId || selectedOrder.id, 'Cancelled');
+                    }
+                  }}
+                >
+                  Cancel Order (Admin Override)
+                </button>
+              )}
+              <button type="button" className="btn btn-tw-primary rounded-pill btn-sm px-4 ms-auto" onClick={() => setSelectedOrder(null)}>
                 Close
               </button>
             </div>

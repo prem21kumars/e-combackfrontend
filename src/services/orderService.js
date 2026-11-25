@@ -265,9 +265,21 @@ export const orderService = {
    */
   async requestCancellation(orderId, reason = 'Customer request') {
     try {
-      await apiClient.post(`/orders/${orderId}/cancel`, { reason });
-    } catch (e) {
-      console.warn('Backend cancel call warning:', e.message);
+      const response = await apiClient.post(`/orders/${orderId}/cancel`, { reason });
+      if (response.data?.data) {
+        const mapped = mapBackendOrder(response.data.data);
+        const orders = initOrdersStorage();
+        const index = orders.findIndex((o) => String(o.id) === String(orderId) || o.orderNumber === String(orderId));
+        if (index !== -1) {
+          orders[index] = mapped;
+          setStorageItem(ORDERS_STORAGE_KEY, orders);
+        }
+        return mapped;
+      }
+    } catch (err) {
+      const backendMessage = err.response?.data?.message || err.message || 'Failed to cancel order on server';
+      console.warn('Backend cancel call warning:', backendMessage);
+      throw new Error(backendMessage);
     }
     return this.updateOrderStatus(orderId, 'Cancelled', `Cancellation requested: ${reason}`);
   },
