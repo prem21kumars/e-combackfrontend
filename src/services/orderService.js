@@ -23,6 +23,16 @@ const parseAddressSnapshot = (raw) => {
   }
 };
 
+const normalizeOrderStatus = (raw) => {
+  if (!raw) return 'Ordered';
+  const upper = String(raw).toUpperCase().trim();
+  if (upper === 'CANCELLED' || upper === 'CANCELED' || upper === 'REFUNDED') return 'Cancelled';
+  if (upper === 'PROCESSING') return 'Processing';
+  if (upper === 'SHIPPED' || upper === 'OUT_FOR_DELIVERY') return 'Shipped';
+  if (upper === 'DELIVERED') return 'Delivered';
+  return 'Ordered';
+};
+
 const mapBackendOrder = (o) => {
   const dateStr = o.createdAt ? new Date(o.createdAt).toISOString() : new Date().toISOString();
   const orderNumber = o.orderNumber || `ORD-${o.id}`;
@@ -104,13 +114,13 @@ const mapBackendOrder = (o) => {
       }
       return o.status === 'CONFIRMED' || o.status === 'DELIVERED' ? 'Paid' : 'Pending';
     })(),
-    orderStatus: o.status || 'Ordered',
+    orderStatus: normalizeOrderStatus(o.status),
     trackingNumber: `TRK-IND-${String(o.id || 1000).padStart(6, '0')}`,
     statusTimeline: [
       {
-        status: o.status || 'Ordered',
+        status: normalizeOrderStatus(o.status),
         timestamp: dateStr,
-        notes: `Order created via Spring Boot engine with status ${o.status || 'Ordered'}.`,
+        notes: `Order created via Spring Boot engine with status ${normalizeOrderStatus(o.status)}.`,
       },
     ],
   };
@@ -305,42 +315,24 @@ export const orderService = {
    * Admin: Update order fulfillment status: PUT /api/v1/admin/orders/{id}/status
    */
   async updateAdminOrderStatus(orderId, status, notes = '') {
-    const numericId = typeof orderId === 'number'
-      ? orderId
-      : (orderId.includes('-') ? parseInt(orderId.split('-').pop(), 10) : parseInt(orderId, 10));
+    const rawId = typeof orderId === 'object'
+      ? (orderId?.orderNumber || orderId?.id || orderId?.backendId)
+      : orderId;
 
     try {
-      if (!isNaN(numericId)) {
-        const response = await apiClient.put(`/admin/orders/${numericId}/status`, {
-          status: status.toUpperCase(),
-          notes: notes || `Admin updated status to ${status}`,
-        });
-        if (response.data?.data) {
-          const o = response.data.data;
-          const dateStr = o.createdAt ? new Date(o.createdAt).toISOString() : new Date().toISOString();
-          const orderNumber = o.orderNumber || `ORD-${o.id}`;
-          return {
-            id: orderNumber,
-            backendId: o.id,
-            orderNumber: orderNumber,
-            date: dateStr,
-            createdAt: dateStr,
-            customer: {
-              email: o.userEmail || 'customer@example.com',
-              name: o.customerName || 'Customer',
-            },
-            items: [],
-            total: Number(o.totalAmount || 0),
-            orderStatus: o.status || status,
-            statusTimeline: [
-              {
-                status: o.status || status,
-                timestamp: dateStr,
-                notes: notes || `Admin updated status to ${status}`,
-              },
-            ],
-          };
+      const response = await apiClient.put(`/admin/orders/${rawId}/status`, {
+        status: status.toUpperCase(),
+        notes: notes || `Admin updated status to ${status}`,
+      });
+      if (response.data?.data) {
+        const mapped = mapBackendOrder(response.data.data);
+        const orders = initOrdersStorage();
+        const index = orders.findIndex((o) => String(o.id) === String(rawId) || o.orderNumber === String(rawId));
+        if (index !== -1) {
+          orders[index] = mapped;
+          setStorageItem(ORDERS_STORAGE_KEY, orders);
         }
+        return mapped;
       }
     } catch (err) {
       console.warn('Backend /admin/orders status update failed:', err.message);

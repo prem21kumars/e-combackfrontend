@@ -8,7 +8,8 @@ import {
   Clock, 
   MapPin, 
   User,
-  Filter
+  Filter,
+  AlertCircle
 } from 'lucide-react';
 import { orderService } from '../../services/orderService';
 import { formatCurrency, formatDate } from '../../utils/formatters';
@@ -135,7 +136,7 @@ export const AdminOrdersPage = () => {
                   <th>Items</th>
                   <th>Total</th>
                   <th>Payment</th>
-                  <th>Update Status</th>
+                  <th>Order Status</th>
                   <th className="text-end">Details</th>
                 </tr>
               </thead>
@@ -164,23 +165,29 @@ export const AdminOrdersPage = () => {
                       </span>
                     </td>
                     <td>
-                      <select
-                        className={`form-select form-select-sm rounded-pill fw-bold ${
-                          ord.orderStatus === 'Delivered' ? 'border-success text-success' :
-                          ord.orderStatus === 'Shipped' ? 'border-info text-info' :
-                          ord.orderStatus === 'Processing' ? 'border-warning text-warning' :
-                          ord.orderStatus === 'Cancelled' ? 'border-danger text-danger' : 'border-primary text-primary'
-                        }`}
-                        value={ord.orderStatus}
-                        onChange={(e) => handleStatusChange(ord.id, e.target.value)}
-                        style={{ width: '150px' }}
-                      >
-                        <option value="Ordered">Ordered</option>
-                        <option value="Processing">Processing</option>
-                        <option value="Shipped">Shipped</option>
-                        <option value="Delivered">Delivered</option>
-                        <option value="Cancelled">Cancelled</option>
-                      </select>
+                      {ord.orderStatus === 'Cancelled' ? (
+                        <span className="badge bg-danger-subtle text-danger border border-danger rounded-pill px-3 py-2 fw-bold d-inline-flex align-items-center gap-1">
+                          <span className="rounded-circle bg-danger" style={{ width: '6px', height: '6px' }}></span>
+                          Cancelled
+                        </span>
+                      ) : (
+                        <select
+                          className={`form-select form-select-sm rounded-pill fw-bold ${
+                            ord.orderStatus === 'Delivered' ? 'border-success text-success' :
+                            ord.orderStatus === 'Shipped' ? 'border-info text-info' :
+                            ord.orderStatus === 'Processing' ? 'border-warning text-warning' : 'border-primary text-primary'
+                          }`}
+                          value={ord.orderStatus}
+                          onChange={(e) => handleStatusChange(ord.id || ord.orderNumber, e.target.value)}
+                          style={{ width: '150px' }}
+                        >
+                          <option value="Ordered">Ordered</option>
+                          <option value="Processing">Processing</option>
+                          <option value="Shipped">Shipped</option>
+                          <option value="Delivered">Delivered</option>
+                          <option value="Cancelled">Cancelled</option>
+                        </select>
+                      )}
                     </td>
                     <td className="text-end">
                       <button
@@ -210,8 +217,17 @@ export const AdminOrdersPage = () => {
                 <h5 className="fw-bold mb-0">Order: {selectedOrder.id}</h5>
                 <small className="text-muted">{formatDate(selectedOrder.date)}</small>
               </div>
-              <span className="badge bg-primary rounded-pill px-3 py-2">{selectedOrder.orderStatus}</span>
+              <span className={`badge ${selectedOrder.orderStatus === 'Cancelled' ? 'bg-danger text-white' : 'bg-primary text-white'} rounded-pill px-3 py-2 fw-bold`}>
+                {selectedOrder.orderStatus}
+              </span>
             </div>
+
+            {selectedOrder.orderStatus === 'Cancelled' && (
+              <div className="alert alert-danger py-2 px-3 rounded-4 small mb-3 d-flex align-items-center gap-2">
+                <AlertCircle size={16} className="flex-shrink-0" />
+                <span>This order has been cancelled and cannot be modified.</span>
+              </div>
+            )}
 
             {/* Customer Details */}
             <div className="p-3 rounded-4 bg-light mb-3 small">
